@@ -38,7 +38,12 @@ read_CH<- function(query, host, local_dir="~/tmp", remote_dir="tmp", header=T, f
   query<- gsub(x=query,pattern="'", replacement="\'\"\'\"\'")
   
   #выполняем запрос в Clickhouse, сохранение в указанной папке на удаленной машинке. Если ошибка получим сообщение
-  message<- system(paste("ssh -t -t analytics1e.stat.yandex.net  'cd ",remote_dir," && clickhouse-client --host=",host," --user=<ЛОГИН> --password=<ПАРОЛЬ> --format=TabSeparatedWithNames --query=\"",query,"\" > Rout && exit'", sep=""), intern=T)
+  message<- system(paste("ssh -t -t analytics1e.stat.yandex.net  'cd ",remote_dir,
+                         " && clickhouse-client --host=",host,
+                         " --user=", secret.user,
+                         " --password=", secret.password,
+                         " --format=TabSeparatedWithNames --query=\"",query,
+                         "\" > Rout && exit'", sep=""), intern=T)
   
   #если ошибка на стороне Clickhouse
   if(length(message)!=0){ 
