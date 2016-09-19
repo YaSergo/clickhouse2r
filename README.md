@@ -5,5 +5,6 @@
 Основан на статье Александра Кучина [Выгрузка из Clickhouse не выходя из Rstudio](https://wiki.yandex-team.ru/users/alexkucin/Vygruzka-iz-Clickhouse-ne-vyxodja-iz-Rstudio/)
 
 ## Использование
-  * Подключаем проект с помощью `source("/path/to/clickhouse2r.R")`
-  * Используем функцию read.clickhouse для выгрузки данных в виде Data Frame
+  * Создаём auth.RData с логином и паролем для подключения к ssh;
+  * Подключаем проект с помощью `source("/path/to/clickhouse2r.R")`;
+  * Используем функцию read.clickhouse для выгрузки данных в виде Data Frame.
