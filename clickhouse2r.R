@@ -1,11 +1,6 @@
 # Основано на статье Александра Кучина:
 # https://wiki.yandex-team.ru/users/alexkucin/Vygruzka-iz-Clickhouse-ne-vyxodja-iz-Rstudio/
 
-# ToDo:
-#   * Убрать вывод "Connection to analytics1e.stat.yandex.net closed."
-#   * Настроить формат вывода, [	3 сек] -> [	3.00 сек]
-#   * Стандартизовать комментарии (в частности описание функций)
-
 log.print <- function(start.time, message){
   # Функция для вывода в консоль некоторого сообщения, с указанием сколько
   # секунд прошло от start.time
