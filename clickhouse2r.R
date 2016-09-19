@@ -1,45 +1,40 @@
 # Основано на статье Александра Кучина:
 # https://wiki.yandex-team.ru/users/alexkucin/Vygruzka-iz-Clickhouse-ne-vyxodja-iz-Rstudio/
 
-#список хостов Clickhouse
-hosts<- c("mtstat01-1.yandex.ru",
-          "mtmega.yandex.ru",
-          "mtmega01e.yandex.ru",
-          "mtmega01d.yandex.ru",
-          "mtmega01i.yandex.ru")
-
-auth.file.path <- "./auth.Rdata"
-if (!file.exists(auth.file.path)){
-  stop("Создайте ./auth.Rdata, с двумя переменными secret.user и secret.password
-       с логином и паролем для подключения к ssh")
-}
-# в данном файле должны быть сохранены две переменные:
-#   * secret.user     - str, логин для подключения к ssh
-#   * secret.password - str, пароль для подключения к ssh
-load(file = auth.file.path)
+# ToDo:
+#   * Убрать вывод "Connection to analytics1e.stat.yandex.net closed."
+#   * Настроить формат вывода, [	3 сек] -> [	3.00 сек]
+#   * Стандартизовать комментарии (в частности описание функций)
 
 log.print <- function(start.time, message){
+  # Функция для вывода в консоль некоторого сообщения, с указанием сколько
+  # секунд прошло от start.time
+  #
+  # Аргументы:
+  #   * start.time  - object of class "POSIXct", то что возвращает функция Sys.time()
+  #   * message     - chr, строка-сообщение, для вывода в консоль
   diff.time <- as.numeric(Sys.time() - start.time, units = "secs")
   diff.time <- paste0("[\t", round(diff.time, 2), " сек] ")
   writeLines(paste0(diff.time, message))
 }
 
-#сам  запрос, пишите стандартно, как привыкли, только кавычки должны быть простые ' а не двойные "
-query<- c("select UUID, OriginalDeviceID, ADVID, max((SessionType = 0) ? toDate(StartDate) : toDate('0000-00-00')) as MaxDate
-          from mobile.events_all
-          where
-          APIKey IN (23104, 23107) AND
-          StartDate >= ('2016-07-19') AND
-          StartDate <= ('2016-07-19')
-          group by UUID, OriginalDeviceID, ADVID
-          limit 100")
-
 #функция для обработки запроса на удаленной машинке, возвращает результат запроса в виде data frame
-read_CH<- function(query, host, local_dir="~/tmp", remote_dir="tmp", header=T, fill=T, strFact=F, strip.white=T, verbose=F, check_time=T)
+read.clickhouse <- function(query, host, local_dir="~/tmp", remote_dir="tmp", header=T, fill=T, strFact=F, strip.white=T, verbose=F, check_time=T, auth.file.path = "./auth.Rdata")
 {
+  # фиксируем момент запуска функции
   start.time <- Sys.time()
   
+  if (!file.exists(auth.file.path)){
+    stop("Создайте ./auth.Rdata, с двумя переменными secret.user и secret.password
+         с логином и паролем для подключения к ssh")
+  }
+  # в данном файле должны быть сохранены две переменные:
+  #   * secret.user     - str, логин для подключения к ssh
+  #   * secret.password - str, пароль для подключения к ssh
+  load(file = auth.file.path)
   
+  # Проверка существования временной директории на локальной машине,
+  # если директории нет - создаём
   if (!dir.exists(local_dir)){
     dir.create(local_dir)
   }
@@ -87,11 +82,8 @@ read_CH<- function(query, host, local_dir="~/tmp", remote_dir="tmp", header=T, f
   system(paste("ssh -t -t analytics1e.stat.yandex.net  'cd ",remote_dir," && rm Rout && exit'", sep=""))
   if(verbose==T) {log.print(start.time, "99%: Временный файл удален из удаленной папки")}
   if(verbose==T) {log.print(start.time, "100%: Успешно!")}
-
+  
   setwd(current_dir)
   #возвращаем data frame
   return(df)
 }
-
-#используем функцию для выгрузки из Clickhouse
-df<- read_CH(query=query, host=hosts[1], verbose=T)
